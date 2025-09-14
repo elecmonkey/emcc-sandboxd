@@ -203,8 +203,7 @@ func (s *Server) handleCompile(w http.ResponseWriter, r *http.Request) {
     // Build argument list
     args := s.mergeAndFilterArgs(req.Args)
     // Always force output naming & paths
-    outJS := filepath.Join(jobDir, "app.js")
-    args = append(args, "-o", outJS)
+    args = append(args, "-o", "app.js")
 
     // Choose compiler
     compiler := "emcc"
@@ -302,7 +301,6 @@ func (s *Server) acquireMemory(ctx context.Context, estimateBytes int64) error {
         // fast path: try lock + check
         s.mu.Lock()
         max := s.memBudgetBytes
-        reserved := s.memReservedBytes
         s.mu.Unlock()
 
         if max == 0 { // unlimited or not configured
