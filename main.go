@@ -302,7 +302,6 @@ func (s *Server) acquireMemory(ctx context.Context, estimateBytes int64) error {
         // fast path: try lock + check
         s.mu.Lock()
         max := s.memBudgetBytes
-        reserved := s.memReservedBytes
         s.mu.Unlock()
 
         if max == 0 { // unlimited or not configured
