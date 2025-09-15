@@ -1,7 +1,7 @@
 # emcc-sandboxd
 
 About
-Sandboxed Emscripten compilation http server with resource and safe guards.
+Sandboxed Emscripten compilation http server with resource limits and safety measures.
 
 ## Installation
 
@@ -181,14 +181,34 @@ emcc-sandboxd supports configuration through a JSON file named `config.json`. If
 
 - **`enableResourceGating`** (boolean): Enable memory-based resource gating. Default: `false`
   - **Recommended for production**: `true`
-  - Prevents system overload by limiting concurrent compilations
-  - Uses cgroups v2 memory limits for enforcement
+  - Prevents system overload by gating new compilations against a global memory budget, not by a fixed worker count
+  - Uses cgroups v2 memory limits for enforcement (reads `memory.max` and `memory.current` from the configured cgroup)
 
 - **`jobMemoryEstimateMB`** (integer): Estimated memory usage per compilation job in MB. Default: `256`
-  - Used for resource gating calculations
-  - Adjust based on typical compilation memory usage
+  - Used only for total-pool gating calculations; it is not a per-job hard memory cap
+  - Effective concurrency emerges from `floor((memory.max - memory.current) / estimate)` at runtime
+  - Choose a conservative value to avoid oversubscription; increase if your jobs are lightweight
 
 - **`cgroupV2Root`** (string): Root directory for cgroups v2 operations. Default: `cgroup`
   - Only used when `enableResourceGating` is `true`
   - Should point to a valid cgroups v2 mount point
   - Common production path: `/sys/fs/cgroup/emcc-sandboxd`
+
+#### How resource gating works
+
+- When `enableResourceGating=true`, each incoming `/compile` request attempts to reserve `jobMemoryEstimateMB` from a shared budget before starting the compiler.
+- The server reads `memory.max` (global cap) and `memory.current` (live usage) from `cgroupV2Root`. A job proceeds only if `current + reserved + estimate <= max`; otherwise it waits and retries every ~200ms.
+- Reservations are tracked locally in the server to avoid races across concurrent HTTP requests; on completion the reservation is released.
+- If `memory.max` is `"max"` or the files cannot be read, gating is effectively disabled (requests proceed immediately).
+- Requests respect HTTP cancellation/timeout; if the client disconnects or the context expires while waiting, the request aborts.
+
+#### What resource gating is not
+
+- It does not impose a per-job hard memory limit. All compiler processes inherit the same cgroup as the service.
+- A single job that exceeds the estimate can still push the cgroup toward OOM. To hard-cap per-job resources, place each job in its own cgroup or configure stricter nsjail limits.
+
+#### Enforcing per-job limits (optional)
+
+- To enforce per-job memory/CPU/PID caps, consider one of:
+  - Launch each job in its own cgroup and write per-job `memory.max`, `cpu.max`, and `pids.max`.
+  - Use nsjail with appropriate rlimits and cgroup integration. Note: the current default only sets `--rlimit_fsize` (256MiB) and disables networking; it does not set per-job memory/CPU caps.
