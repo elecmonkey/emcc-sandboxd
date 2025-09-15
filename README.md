@@ -83,6 +83,48 @@ git clone https://github.com/elecmonkey/emcc-sandboxd
 go run .
 ```
 
+## Test
+
+Health check
+
+```bash
+curl http://localhost:8080/healthz
+```
+
+Compile C code
+
+```bash
+curl -X POST http://localhost:8080/compile \ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "#include <stdio.h>\nint main() { printf(\"Hello WebAssembly!\"); return 0; }",
+    "type": "c"
+  }'
+```
+
+Compile C++ code
+
+```bash
+curl -X POST http://localhost:8080/compile \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "#include <iostream>\nint main() { std::cout << \"Hello C++ WebAssembly!\" << std::endl; return 0; }",
+    "type": "cpp"
+  }'
+```
+
+Compile with custom arguments
+
+```bash
+curl -X POST http://localhost:8080/compile \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "#include <stdio.h>\nint add(int a, int b) { return a + b; }\nint main() { printf(\"Result: %d\", add(5, 3)); return 0; }",
+    "type": "c",
+    "args": ["-O2", "-sEXPORTED_FUNCTIONS=[_main,_add]"]
+  }'
+```
+
 ## Configuration
 
 emcc-sandboxd supports configuration through a JSON file named `config.json`. If no configuration file is provided, the service will use built-in default values.
