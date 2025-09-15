@@ -1,0 +1,22 @@
+{
+  "workingDir": "/srv/emcc-sandboxd",
+  "addr": ":8080",
+  "baseDir": ".",
+  "jobsDir": "jobs",
+  "artifactsDir": "artifacts",
+  "enableStaticArtifacts": true,
+  "artifactTTLDays": 7,
+  "cleanupIntervalMins": 60,
+  "defaultArgs": [
+    "-sINVOKE_RUN=0",
+    "-sENVIRONMENT=web",
+    "-sALLOW_MEMORY_GROWTH=1",
+    "-sMODULARIZE=1",
+    "-O2"
+  ],
+  "nsjailEnabled": true,
+  "nsjailPath": "/usr/local/bin/nsjail",
+  "cgroupV2Root": "/sys/fs/cgroup/emcc-sandboxd",
+  "enableResourceGating": true,
+  "jobMemoryEstimateMB": 512
+}
