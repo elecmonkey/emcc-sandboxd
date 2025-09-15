@@ -1,6 +1,5 @@
 # emcc-sandboxd
 
-About
 Sandboxed Emscripten compilation http server with resource limits and safety measures.
 
 ## Installation
