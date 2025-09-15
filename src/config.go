@@ -24,9 +24,9 @@ func DefaultConfig() Config {
 			"-sALLOW_MEMORY_GROWTH=1",
 			"-sMODULARIZE=1",
 		},
-		NsJailEnabled:       false,
-		NsJailPath:          "nsjail",
-		CgroupV2Root:        "cgroup",
+		NsJailEnabled:        false,
+		NsJailPath:           "nsjail",
+		CgroupV2Root:         "cgroup",
 		EnableResourceGating: false,
 		JobMemoryEstimateMB:  256,
 	}

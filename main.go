@@ -17,7 +17,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("load config: %v", err)
 	}
-	
+
 	// Change working directory if specified
 	if cfg.WorkingDir != "" {
 		if err := os.Chdir(cfg.WorkingDir); err != nil {
@@ -25,7 +25,7 @@ func main() {
 		}
 		log.Printf("Changed working directory to: %s", cfg.WorkingDir)
 	}
-	
+
 	// Validate minimal external deps when nsjail enabled
 	if cfg.NsJailEnabled {
 		if _, err := exec.LookPath(cfg.NsJailPath); err != nil {
