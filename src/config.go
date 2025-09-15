@@ -10,6 +10,7 @@ import (
 // DefaultConfig returns the default configuration
 func DefaultConfig() Config {
 	return Config{
+		WorkingDir:            "/srv/emcc-sandboxd", // Default to standard service directory
 		Addr:                  ":8080",
 		BaseDir:               ".",
 		JobsDir:               "jobs",

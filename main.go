@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 
 	"emcc-sandboxd/src"
@@ -16,6 +17,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("load config: %v", err)
 	}
+	
+	// Change working directory if specified
+	if cfg.WorkingDir != "" {
+		if err := os.Chdir(cfg.WorkingDir); err != nil {
+			log.Fatalf("failed to change working directory to '%s': %v", cfg.WorkingDir, err)
+		}
+		log.Printf("Changed working directory to: %s", cfg.WorkingDir)
+	}
+	
 	// Validate minimal external deps when nsjail enabled
 	if cfg.NsJailEnabled {
 		if _, err := exec.LookPath(cfg.NsJailPath); err != nil {

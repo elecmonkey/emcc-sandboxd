@@ -4,6 +4,7 @@ import "time"
 
 // Config holds all configuration for the emcc-sandboxd service
 type Config struct {
+	WorkingDir           string        `json:"workingDir"`           // Working directory for the service, defaults to current dir
 	Addr                 string        `json:"addr"`
 	BaseDir              string        `json:"baseDir"`
 	JobsDir              string        `json:"jobsDir"`
