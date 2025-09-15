@@ -111,12 +111,34 @@ func (s *Server) HandleCompile(w http.ResponseWriter, r *http.Request) {
 	var cmd *exec.Cmd
 	if s.cfg.NsJailEnabled {
 		// Run within nsjail if enabled. We bind mount jobDir to /work and compile there.
+		// Ensure we use absolute path for bind mount
+		absJobDir, err := filepath.Abs(jobDir)
+		if err != nil {
+			http.Error(w, "failed to get absolute path: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
 		nsArgs := []string{
 			"--quiet",
 			"--iface_no_lo",
+			"--user", "nobody",
+			"--group", "nogroup", 
+			"--clone_newnet",
+			"--clone_newuser",
+			"--clone_newns",
+			"--clone_newpid",
+			"--clone_newipc",
+			"--clone_newuts",
 			"--cwd", "/work",
-			"--bindmount", fmt.Sprintf("%s:/work", jobDir),
+			"--bindmount", fmt.Sprintf("%s:/work", absJobDir),
+			"--bindmount_ro", "/usr",
+			"--bindmount_ro", "/lib",
+			"--bindmount_ro", "/lib64", 
+			"--bindmount_ro", "/bin",
+			"--bindmount_ro", "/etc/passwd",
+			"--bindmount_ro", "/etc/group",
 			"--rlimit_fsize", fmt.Sprintf("%d", 256*1024*1024), // 256MiB
+			"--rlimit_nofile", "512",
+			"--rlimit_nproc", "64",
 			"--",
 			compiler,
 			srcName,
